@@ -1,5 +1,10 @@
 package com.gaymantwo.demo.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class VoiceResponseDto {
     private boolean success;
     private String message;
@@ -10,30 +15,6 @@ public class VoiceResponseDto {
     public VoiceResponseDto(boolean success, String message, String processedText) {
         this.success = success;
         this.message = message;
-        this.processedText = processedText;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getProcessedText() {
-        return processedText;
-    }
-
-    public void setProcessedText(String processedText) {
         this.processedText = processedText;
     }
 

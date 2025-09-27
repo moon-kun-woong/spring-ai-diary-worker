@@ -1,3 +1,7 @@
 build.gradle
 ./build/*
 src/main/resources/application.properties
+./gradle/*
+./gradlew
+./gradlew.bat
+.claude

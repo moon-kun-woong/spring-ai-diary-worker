@@ -11,35 +11,31 @@
     </div>
 
     <script>
-        // 브라우저 지원 확인
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             const recognition = new SpeechRecognition();
 
-            // 설정
+            // recognition 설정
             recognition.continuous = true;          // 연속 인식
             recognition.interimResults = true;      // 중간 결과 표시
-            recognition.lang = 'ko-KR';            // 한국어
+            recognition.lang = 'ko-KR','en-US';     // 한국어, 영어
 
             const startBtn = document.getElementById('startBtn');
             const stopBtn = document.getElementById('stopBtn');
             const resultDiv = document.getElementById('result');
 
-            // 음성인식 시작
             startBtn.addEventListener('click', () => {
                 recognition.start();
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
             });
 
-            // 음성인식 중지
             stopBtn.addEventListener('click', () => {
                 recognition.stop();
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
             });
 
-            // 결과 처리
             recognition.onresult = (event) => {
                 let transcript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -47,13 +43,10 @@
                 }
                 resultDiv.innerHTML = transcript;
 
-                // 최종 결과일 때 SpringBoot로 전송
                 if (event.results[event.resultIndex].isFinal) {
-                    sendToSpringBoot(transcript);
+                    sendToServer(transcript);
                 }
             };
-
-            // 에러 처리
             recognition.onerror = (event) => {
                 console.error('음성인식 오류:', event.error);
             };
@@ -62,8 +55,7 @@
             alert('이 브라우저는 음성인식을 지원하지 않습니다.');
         }
 
-        // SpringBoot로 전송
-        function sendToSpringBoot(text) {
+        function sendToServer(text) {
             fetch('http://localhost:8080/api/voice', {
                 method: 'POST',
                 headers: {

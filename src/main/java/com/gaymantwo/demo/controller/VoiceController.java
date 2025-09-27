@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*") // 개발 단계에서 CORS 허용
+@CrossOrigin(origins = "*") // 개발에서 CORS 허용
 public class VoiceController {
 
     private final VoiceService voiceService;
