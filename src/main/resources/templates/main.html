@@ -1,77 +1,88 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>웹 STT 예제</title>
+    <title>음성 녹음 및 STT</title>
 </head>
 <body>
     <div>
-        <button id="startBtn">음성인식 시작</button>
-        <button id="stopBtn">중지</button>
+        <button id="startBtn">음성 녹음 시작</button>
+        <button id="stopBtn" disabled>녹음 중지</button>
+        <div id="status">준비됨</div>
         <div id="result"></div>
     </div>
 
     <script>
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
+        let mediaRecorder;
+        let audioChunks = [];
 
-            // recognition 설정
-            recognition.continuous = true;          // 연속 인식
-            recognition.interimResults = true;      // 중간 결과 표시
-            recognition.lang = 'ko-KR','en-US';     // 한국어, 영어
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusDiv = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
 
-            const startBtn = document.getElementById('startBtn');
-            const stopBtn = document.getElementById('stopBtn');
-            const resultDiv = document.getElementById('result');
+        // 마이크 권한 요청 및 녹음 시작
+        startBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-            startBtn.addEventListener('click', () => {
-                recognition.start();
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    sendAudioToServer(audioBlob);
+                };
+
+                mediaRecorder.start();
+
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
-            });
+                statusDiv.innerHTML = '녹음 중...';
 
-            stopBtn.addEventListener('click', () => {
-                recognition.stop();
+            } catch (error) {
+                console.error('마이크 접근 오류:', error);
+                statusDiv.innerHTML = '마이크 접근 권한이 필요합니다.';
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
-            });
+                statusDiv.innerHTML = '음성 처리 중...';
+            }
+        });
 
-            recognition.onresult = (event) => {
-                let transcript = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    transcript += event.results[i][0].transcript;
-                }
-                resultDiv.innerHTML = transcript;
+        function sendAudioToServer(audioBlob) {
+            const formData = new FormData();
+            formData.append('audioFile', audioBlob, 'recording.wav');
 
-                if (event.results[event.resultIndex].isFinal) {
-                    sendToServer(transcript);
-                }
-            };
-            recognition.onerror = (event) => {
-                console.error('음성인식 오류:', event.error);
-            };
-
-        } else {
-            alert('이 브라우저는 음성인식을 지원하지 않습니다.');
-        }
-
-        function sendToServer(text) {
-            fetch('http://localhost:8080/api/voice', {
+            fetch('/api/voice/upload', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    voiceText: text,
-                    timestamp: new Date().toISOString()
-                })
+                body: formData
             })
             .then(response => response.json())
             .then(data => {
                 console.log('서버 응답:', data);
+                if (data.success) {
+                    resultDiv.innerHTML = `<strong>변환된 텍스트:</strong><br>${data.processedText}`;
+                    statusDiv.innerHTML = '변환 완료';
+                } else {
+                    resultDiv.innerHTML = `<strong>오류:</strong> ${data.message}`;
+                    statusDiv.innerHTML = '변환 실패';
+                }
             })
             .catch(error => {
                 console.error('전송 오류:', error);
+                resultDiv.innerHTML = '<strong>오류:</strong> 서버 전송 실패';
+                statusDiv.innerHTML = '전송 실패';
             });
         }
     </script>

@@ -22,11 +22,13 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url = uri("https://repo.spring.io/milestone") }
 }
 
 extra["springAiVersion"] = "1.0.1"
 
 dependencies {
+	implementation(platform("org.springframework.ai:spring-ai-bom:${property("springAiVersion")}"))
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -39,11 +41,6 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-dependencyManagement {
-	imports {
-		mavenBom("org.springframework.ai:spring-ai-bom:${property("springAiVersion")}")
-	}
-}
 
 tasks.withType<Test> {
 	useJUnitPlatform()
