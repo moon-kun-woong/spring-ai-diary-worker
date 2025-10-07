@@ -57,7 +57,7 @@ graph TB
 ### 1. 프론트엔드 흐름
 ```mermaid
 graph LR
-    A[사용자 음성 녹음 시작] --> B[MediaRecorder.start()]
+    A[사용자 음성 녹음 시작] --> B[MediaRecorder.start]
     B --> C[음성 데이터 수집]
     C --> D[녹음 중지]
     D --> E[Blob 생성]
@@ -70,7 +70,7 @@ graph LR
 ```mermaid
 graph TD
     A[POST /api/voice/upload] --> B{파일 검증}
-    B -->|유효| C[VoiceService.processVoiceFile()]
+    B -->|유효| C[VoiceService.processVoiceFile]
     B -->|무효| D[400 Bad Request]
 
     C --> E[MultipartFile → ByteArrayResource 변환]
