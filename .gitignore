@@ -43,6 +43,7 @@ out/
 
 # Claude Code
 .claude
+CLAUDE.md
 
 # Application properties (if contains sensitive data)
 src/main/resources/application.properties
